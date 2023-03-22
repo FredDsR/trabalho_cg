@@ -1,5 +1,7 @@
 function main() {
   const { gl, meshProgramInfo } = initializeWorld();
+  
+  var fieldOfViewRadians = degToRad(60);
 
   const cubeTranslation = [0, 0, 0];
 
@@ -11,12 +13,13 @@ function main() {
     cubeBufferInfo,
   );
 
-  var fieldOfViewRadians = degToRad(60);
-
   const cubeUniforms = {
     u_colorMult: [1, 0.5, 0.5, 1],
     u_matrix: m4.identity(),
   };
+  
+  cubeDistance = 30;
+  cubeMaxQuantityPerRow = 5;
 
   function computeMatrix(viewProjectionMatrix, translation, yRotation) {
     var matrix = m4.translate(
@@ -30,7 +33,18 @@ function main() {
 
   loadGUI();
   
-  function render() {
+  let then = 0;
+  let deltatime;
+  let timeTracker = 0;
+
+  cameraSpeed = 10;
+  var cameraPosition = [0, 0, 100];
+
+  function render(time) {
+    time *= 0.001;
+    deltatime = time - then;
+    then = time;
+
     twgl.resizeCanvasToDisplaySize(gl.canvas);
 
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
@@ -41,7 +55,15 @@ function main() {
     var projectionMatrix = m4.perspective(fieldOfViewRadians, aspect, 1, 2000);
 
     // Compute the camera's matrix using look at.
-    var cameraPosition = [0, 0, 100];
+
+    if (cameraState.shouldAnimate) {
+      if (time - timeTracker > cameraState.cameraTransitionDuration) {
+        cameraSpeed *= -1;
+        timeTracker = time;
+      }
+      
+      cameraPosition[0] += cameraSpeed * deltatime; 
+    }
     var target = [0, 0, 0];
     var up = [0, 1, 0];
     var cameraMatrix = m4.lookAt(cameraPosition, target, up);
@@ -57,10 +79,10 @@ function main() {
     // ------ Draw the cube --------
     gl.bindVertexArray(cubeVAO);
     
-    let j = 30, k = 0;
+    let j = cubeDistance, k = 0;
     for (let i = 0; i < config.quantity; i++) {
 
-      cubeTranslation[0] = (k * 30);
+      cubeTranslation[0] = (k * cubeDistance);
       cubeTranslation[1] = j;
 
       // Setup all the needed attributes.
@@ -76,9 +98,9 @@ function main() {
       twgl.drawBufferInfo(gl, cubeBufferInfo);
       
       k++;
-      if (k == 5) {
+      if (k == cubeMaxQuantityPerRow) {
         k = 0;
-        j -= 30;
+        j -= cubeDistance;
       }
     }
 
