@@ -1,3 +1,8 @@
+"use strict";
+
+// This is not a full .obj parser.
+// see http://paulbourke.net/dataformats/obj/
+
 function parseOBJ(text) {
   // because indices are base 1 let's just fill in the 0th data
   const objPositions = [[0, 0, 0]];
@@ -5,18 +10,23 @@ function parseOBJ(text) {
   const objNormals = [[0, 0, 0]];
 
   // same order as `f` indices
-  const objVertexData = [
-    objPositions,
-    objTexcoords,
-    objNormals,
-  ];
+  const objVertexData = [objPositions, objTexcoords, objNormals];
 
   // same order as `f` indices
   let webglVertexData = [
-    [],   // positions
-    [],   // texcoords
-    [],   // normals
+    [], // positions
+    [], // texcoords
+    [], // normals
   ];
+
+  const materialLibs = [];
+  const geometries = [];
+  let geometry;
+  let groups = ["default"];
+  let material = "default";
+  let object = "default";
+
+  const noop = () => {};
 
   function newGeometry() {
     // If there is an existing geometry and it's
@@ -24,11 +34,30 @@ function parseOBJ(text) {
     if (geometry && geometry.data.position.length) {
       geometry = undefined;
     }
-    setGeometry();
+  }
+
+  function setGeometry() {
+    if (!geometry) {
+      const position = [];
+      const texcoord = [];
+      const normal = [];
+      webglVertexData = [position, texcoord, normal];
+      geometry = {
+        object,
+        groups,
+        material,
+        data: {
+          position,
+          texcoord,
+          normal,
+        },
+      };
+      geometries.push(geometry);
+    }
   }
 
   function addVertex(vert) {
-    const ptn = vert.split('/');
+    const ptn = vert.split("/");
     ptn.forEach((objIndexStr, i) => {
       if (!objIndexStr) {
         return;
@@ -51,6 +80,7 @@ function parseOBJ(text) {
       objTexcoords.push(parts.map(parseFloat));
     },
     f(parts) {
+      setGeometry();
       const numTriangles = parts.length - 2;
       for (let tri = 0; tri < numTriangles; ++tri) {
         addVertex(parts[0]);
@@ -58,13 +88,31 @@ function parseOBJ(text) {
         addVertex(parts[tri + 2]);
       }
     },
+    s: noop, // smoothing group
+    mtllib(parts, unparsedArgs) {
+      // the spec says there can be multiple filenames here
+      // but many exist with spaces in a single filename
+      materialLibs.push(unparsedArgs);
+    },
+    usemtl(parts, unparsedArgs) {
+      material = unparsedArgs;
+      newGeometry();
+    },
+    g(parts) {
+      groups = parts;
+      newGeometry();
+    },
+    o(parts, unparsedArgs) {
+      object = unparsedArgs;
+      newGeometry();
+    },
   };
 
   const keywordRE = /(\w*)(?: )*(.*)/;
-  const lines = text.split('\n');
+  const lines = text.split("\n");
   for (let lineNo = 0; lineNo < lines.length; ++lineNo) {
     const line = lines[lineNo].trim();
-    if (line === '' || line.startsWith('#')) {
+    if (line === "" || line.startsWith("#")) {
       continue;
     }
     const m = keywordRE.exec(line);
@@ -75,28 +123,31 @@ function parseOBJ(text) {
     const parts = line.split(/\s+/).slice(1);
     const handler = keywords[keyword];
     if (!handler) {
-      console.warn('unhandled keyword:', keyword); 
+      console.warn("unhandled keyword:", keyword); // eslint-disable-line no-console
       continue;
     }
     handler(parts, unparsedArgs);
   }
 
+  // remove any arrays that have no entries.
+  for (const geometry of geometries) {
+    geometry.data = Object.fromEntries(
+      Object.entries(geometry.data).filter(([, array]) => array.length > 0)
+    );
+  }
+
   return {
-    position: webglVertexData[0],
-    texcoord: webglVertexData[1],
-    normal: webglVertexData[2],
+    geometries,
+    materialLibs,
   };
-}
+};
 
 async function main() {
-  const { gl, meshProgramInfo } = initializeWorld();
+  const { gl, twgl, meshProgramInfo } = initializeWorld();
 
-  console.log('chegou aqui primeiro')
-  const response = await fetch('http://localhost:8000/junk_food.obj');
+  const response = await fetch('../../src/models/cybertruck.obj');
   const text = await response.text();
   const data = parseOBJ(text);
-
-  console.log('chegou aqui')
 
   const bufferInfo = twgl.createBufferInfoFromArray(gl, data);
 

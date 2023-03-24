@@ -42,6 +42,7 @@ const initializeWorld = () => {
 
   return {
     gl,
+    twgl,
     meshProgramInfo,
   };
 };
