@@ -143,13 +143,15 @@ function parseOBJ(text) {
 };
 
 async function main() {
-  const { gl, twgl, meshProgramInfo } = initializeWorld();
+  const { gl, twgl, meshProgramInfo } = initializeWorld('#canvas');
 
-  const response = await fetch('../../src/models/cybertruck.obj');
+  const response = await fetch('../../src/models/junk_food.obj');
   const text = await response.text();
   const data = parseOBJ(text);
 
-  const bufferInfo = twgl.createBufferInfoFromArray(gl, data);
+  console.log(data)
+
+  const bufferInfo = twgl.createBufferInfoFromArrays(gl, data);
 
   const vao = twgl.createVAOFromBufferInfo(gl, meshProgramInfo, bufferInfo);
 

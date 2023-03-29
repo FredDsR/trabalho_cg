@@ -5,16 +5,37 @@
 
     <!--  Meta  -->
     <meta charset="UTF-8" />
-    <title>Trabalho WebGL</title>
+    <title>Trabalho 1.0 WebGL</title>
 
     <!--  Styles  -->
     <link rel="stylesheet" href="src/styles/dat.gui.css">
     <link rel="stylesheet" href="src/styles/index.processed.css">
+    <link rel="stylesheet" href="src/styles/index.css">
 </head>
 
 <body>
-
-    <canvas id="canvas"></canvas>
+    <header>
+        <div class="header-container">
+          <h1>Trabalho 01 - Computação Gráfica</h1>
+          <nav>
+            <ul>
+              <li><a href="index.html">Home</a></li>
+            </ul>
+          </nav>
+        </div>
+      </header>
+    <div class="items-pool">
+        <div class="item">
+            <canvas id="cybertruck-canvas"></canvas>
+            <h3>Cybertruck</h3>
+            <button class="select-button">Select</button>
+        </div>
+        <div class="item">
+            <canvas id="truck-drifter-canvas"></canvas>
+            <h3>Drift Truck</h3>
+            <button class="select-button">Select</button>
+        </div>
+    </div>
 
     <!-- Scripts -->
     <script src="https://webgl2fundamentals.org/webgl/resources/twgl-full.min.js"></script>
@@ -24,7 +45,9 @@
     <script src="src/js/webgl.js"></script>
     <script src="src/js/utils.js"></script>
     <script src="src/js/gui.js"></script>
-    <script src="src/js/script.js"></script>
+    <!-- <script src="src/js/script.js"></script> -->
+    <script src="src/js/cybertruck.js"></script>
+    <script src="src/js/truck_drifter.js"></script>
 </body>
 
 </html>
