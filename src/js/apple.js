@@ -6,7 +6,7 @@
 async function main() {
   // Get A WebGL context
   /** @type {HTMLCanvasElement} */
-  const canvas = document.querySelector("#truck-drifter-canvas");
+  const canvas = document.querySelector("#apple-canvas");
   const gl = canvas.getContext("webgl2");
   if (!gl) {
     return;
@@ -104,7 +104,7 @@ async function main() {
   // compiles and links the shaders, looks up attribute and uniform locations
   const meshProgramInfo = twgl.createProgramInfo(gl, [vs, fs]);
 
-  const objHref = '../../src/models/cookie/cookie.obj';  
+  const objHref = '../../src/models/apples/apples.obj';  
   const response = await fetch(objHref);
   const text = await response.text();
   const obj = parseOBJ(text);
@@ -174,7 +174,7 @@ async function main() {
       }
     } else {
       // there are no vertex colors so just use constant white
-      data.color = { value: [0, 255, 255, 1] };
+      data.color = { value: [1, 0, 0.3, 1] };
     }
 
     // generate tangents if we have the data to do so.
@@ -249,7 +249,7 @@ async function main() {
   const cameraPosition = m4.addVectors(cameraTarget, [
     0,
     0,
-    radius+1,
+    radius+0.1,
   ]);
   // Set zNear and zFar to something hopefully appropriate
   // for the size of this object.
@@ -293,7 +293,6 @@ async function main() {
     // compute the world matrix once since all parts
     // are at the same space.
     let u_world = m4.yRotation(time);
-    u_world = m4.xRotate(u_world, degToRad(90));
     u_world = m4.translate(u_world, ...objOffset);
 
     for (const {bufferInfo, vao, material} of parts) {
