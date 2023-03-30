@@ -284,7 +284,7 @@ async function main() {
     const up = [0, 1, 0];
     
     const cameraPosition = m4.addVectors(cameraTarget, [
-      radius + (state.controlX / 1000),
+      0,
       radius + (state.controlY / 1000),
       radius + (state.zoom / 1000),
     ]);
