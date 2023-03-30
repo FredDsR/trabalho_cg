@@ -100,7 +100,6 @@ async function main() {
   }
   `;
 
-
   // compiles and links the shaders, looks up attribute and uniform locations
   const meshProgramInfo = twgl.createProgramInfo(gl, [vs, fs]);
 
@@ -242,27 +241,38 @@ async function main() {
         extents.min,
         m4.scaleVector(range, 0.5)),
       -1);
-  const cameraTarget = [0, 0, 0];
+  let cameraTarget = [0, 0, 0];
   // figure out how far away to move the camera so we can likely
   // see the object.
   const radius = m4.length(range) * 0.5;
-  const cameraPosition = m4.addVectors(cameraTarget, [
-    0,
-    0,
-    radius+0.1,
-  ]);
+  
   // Set zNear and zFar to something hopefully appropriate
   // for the size of this object.
   const zNear = radius / 100;
   const zFar = 2000;
-  console.log(radius)
+
   function degToRad(deg) {
     return deg * Math.PI / 180;
   }
 
+  // GUI
+  const state = {
+    controlX: 0,
+    controlY: 0,
+    zoom: 100
+  }
+
+  const gui = new dat.GUI({autoPlace: false});
+
+  document.getElementById('apple').append(gui.domElement);
+  
+  gui.add(state, "controlX", -50, 50, 1);
+  gui.add(state, "controlY", -50, 50, 1);
+  gui.add(state, "zoom", 0, 200, 1);
+
   function render(time) {
     time *= 0.001;  // convert to seconds
-
+    
     twgl.resizeCanvasToDisplaySize(gl.canvas);
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
     gl.enable(gl.DEPTH_TEST);
@@ -272,6 +282,12 @@ async function main() {
     const projection = m4.perspective(fieldOfViewRadians, aspect, zNear, zFar);
 
     const up = [0, 1, 0];
+    
+    const cameraPosition = m4.addVectors(cameraTarget, [
+      radius + (state.controlX / 1000),
+      radius + (state.controlY / 1000),
+      radius + (state.zoom / 1000),
+    ]);
     // Compute the camera's matrix using look at.
     const camera = m4.lookAt(cameraPosition, cameraTarget, up);
 
