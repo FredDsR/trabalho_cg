@@ -241,15 +241,26 @@ async function main() {
         extents.min,
         m4.scaleVector(range, 0.5)),
       -1);
+
   let cameraTarget = [0, 0, 0];
   // figure out how far away to move the camera so we can likely
   // see the object.
   const radius = m4.length(range) * 0.5;
-  
+
+  const up = [0, 1, 0];
+    
+  const cameraPosition = m4.addVectors(cameraTarget, [
+    0,
+    0,
+    radius*3,
+  ]);
+  // Compute the camera's matrix using look at.
+  const camera = m4.lookAt(cameraPosition, cameraTarget, up);
+
   // Set zNear and zFar to something hopefully appropriate
   // for the size of this object.
   const zNear = radius / 100;
-  const zFar = 2000;
+  const zFar = radius * 100;
 
   function degToRad(deg) {
     return deg * Math.PI / 180;
@@ -281,16 +292,6 @@ async function main() {
     const aspect = gl.canvas.clientWidth / gl.canvas.clientHeight;
     const projection = m4.perspective(fieldOfViewRadians, aspect, zNear, zFar);
 
-    const up = [0, 1, 0];
-    
-    const cameraPosition = m4.addVectors(cameraTarget, [
-      0,
-      radius + (state.controlY / 1000),
-      radius + (state.zoom / 1000),
-    ]);
-    // Compute the camera's matrix using look at.
-    const camera = m4.lookAt(cameraPosition, cameraTarget, up);
-
     // Make a view matrix from the camera matrix.
     const view = m4.inverse(camera);
 
@@ -308,8 +309,12 @@ async function main() {
 
     // compute the world matrix once since all parts
     // are at the same space.
-    let u_world = m4.yRotation(time);
-    u_world = m4.translate(u_world, ...objOffset);
+    // let u_world = m4.yRotation(time);
+    // u_world = m4.translate(u_world, ...objOffset);
+    const objControl = m4.addVectors(objOffset, [(state.controlX / 1000),
+                                                 (state.controlY / 1000),
+                                                 (state.zoom / 1000)]);
+    const u_world = m4.translation(...objControl);
 
     for (const {bufferInfo, vao, material} of parts) {
       // set the attributes for this part.
