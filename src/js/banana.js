@@ -284,9 +284,10 @@ async function main() {
 
     // compute the world matrix once since all parts
     // are at the same space.
-    let u_world = m4.yRotation(time);
+    // let u_world = m4.yRotation(time);
+    let u_world = m4.translation(...objOffset);
     u_world = m4.zRotate(u_world, degToRad(90))
-    u_world = m4.translate(u_world, ...objOffset);
+    // u_world = m4.translate(u_world, ...objOffset);
 
     for (const {bufferInfo, vao, material} of parts) {
       // set the attributes for this part.
