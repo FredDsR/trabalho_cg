@@ -6,114 +6,9 @@
 async function main() {
   // Get A WebGL context
   /** @type {HTMLCanvasElement} */
-  const canvas = document.querySelector("#apple-canvas");
-  const gl = canvas.getContext("webgl2");
-  if (!gl) {
-    return;
-  }
+  const {gl, twgl, meshProgramInfo} = initializeWorld('#apple-canvas')
 
-  // Tell the twgl to match position with a_position etc..
-  twgl.setAttributePrefix("a_");
-
-  const vs = `#version 300 es
-  in vec4 a_position;
-  in vec3 a_normal;
-  in vec3 a_tangent;
-  in vec2 a_texcoord;
-  in vec4 a_color;
-
-  uniform mat4 u_projection;
-  uniform mat4 u_view;
-  uniform mat4 u_world;
-  uniform vec3 u_viewWorldPosition;
-
-  out vec3 v_normal;
-  out vec3 v_tangent;
-  out vec3 v_surfaceToView;
-  out vec2 v_texcoord;
-  out vec4 v_color;
-
-  void main() {
-    vec4 worldPosition = u_world * a_position;
-    gl_Position = u_projection * u_view * worldPosition;
-    v_surfaceToView = u_viewWorldPosition - worldPosition.xyz;
-
-    mat3 normalMat = mat3(u_world);
-    v_normal = normalize(normalMat * a_normal);
-    v_tangent = normalize(normalMat * a_tangent);
-
-    v_texcoord = a_texcoord;
-    v_color = a_color;
-  }
-  `;
-
-  const fs = `#version 300 es
-  precision highp float;
-
-  in vec3 v_normal;
-  in vec3 v_tangent;
-  in vec3 v_surfaceToView;
-  in vec2 v_texcoord;
-  in vec4 v_color;
-
-  uniform vec3 diffuse;
-  uniform sampler2D diffuseMap;
-  uniform vec3 ambient;
-  uniform vec3 emissive;
-  uniform vec3 specular;
-  uniform sampler2D specularMap;
-  uniform float shininess;
-  uniform sampler2D normalMap;
-  uniform float opacity;
-  uniform vec3 u_lightDirection;
-  uniform vec3 u_ambientLight;
-
-  out vec4 outColor;
-
-  void main () {
-    vec3 normal = normalize(v_normal) * ( float( gl_FrontFacing ) * 2.0 - 1.0 );
-    vec3 tangent = normalize(v_tangent) * ( float( gl_FrontFacing ) * 2.0 - 1.0 );
-    vec3 bitangent = normalize(cross(normal, tangent));
-
-    mat3 tbn = mat3(tangent, bitangent, normal);
-    normal = texture(normalMap, v_texcoord).rgb * 2. - 1.;
-    normal = normalize(tbn * normal);
-
-    vec3 surfaceToViewDirection = normalize(v_surfaceToView);
-    vec3 halfVector = normalize(u_lightDirection + surfaceToViewDirection);
-
-    float fakeLight = dot(u_lightDirection, normal) * .5 + .5;
-    float specularLight = clamp(dot(normal, halfVector), 0.0, 1.0);
-    vec4 specularMapColor = texture(specularMap, v_texcoord);
-    vec3 effectiveSpecular = specular * specularMapColor.rgb;
-
-    vec4 diffuseMapColor = texture(diffuseMap, v_texcoord);
-    vec3 effectiveDiffuse = diffuse * diffuseMapColor.rgb * v_color.rgb;
-    float effectiveOpacity = opacity * diffuseMapColor.a * v_color.a;
-
-    outColor = vec4(
-        emissive +
-        ambient * u_ambientLight +
-        effectiveDiffuse * fakeLight +
-        effectiveSpecular * pow(specularLight, shininess),
-        effectiveOpacity);
-  }
-  `;
-
-  // compiles and links the shaders, looks up attribute and uniform locations
-  const meshProgramInfo = twgl.createProgramInfo(gl, [vs, fs]);
-
-  const objHref = '../../src/models/apples/apples.obj';  
-  const response = await fetch(objHref);
-  const text = await response.text();
-  const obj = parseOBJ(text);
-  const baseHref = new URL(objHref, window.location.href);
-  const matTexts = await Promise.all(obj.materialLibs.map(async filename => {
-    const matHref = new URL(filename, baseHref).href;
-    const response = await fetch(matHref);
-    return await response.text();
-  }));
-  const materials = parseMTL(matTexts.join('\n'));
+  const {obj, materials} = loadObjAndMat('../../src/models/apples/apples.obj');
 
   const textures = {
     defaultWhite: twgl.createTexture(gl, {src: [255, 255, 255, 255]}),
@@ -152,52 +47,8 @@ async function main() {
     opacity: 1,
   };
 
-  function getExtents(positions) {
-    const min = positions.slice(0, 3);
-    const max = positions.slice(0, 3);
-    for (let i = 3; i < positions.length; i += 3) {
-      for (let j = 0; j < 3; ++j) {
-        const v = positions[i + j];
-        min[j] = Math.min(v, min[j]);
-        max[j] = Math.max(v, max[j]);
-      }
-    }
-    return {min, max};
-  }
-
-  function getGeometriesExtents(geometries) {
-    return geometries.reduce(({min, max}, {data}) => {
-      const minMax = getExtents(data.position);
-      return {
-        min: min.map((min, ndx) => Math.min(minMax.min[ndx], min)),
-        max: max.map((max, ndx) => Math.max(minMax.max[ndx], max)),
-      };
-    }, {
-      min: Array(3).fill(Number.POSITIVE_INFINITY),
-      max: Array(3).fill(Number.NEGATIVE_INFINITY),
-    });
-  }
-
-  function degToRad(deg) {
-    return deg * Math.PI / 180;
-  }
-
   // GUI
-  const state = {
-    controlX: 0,
-    controlY: 0,
-    zoom: 100,
-    color: [255, 0, 0, 1]
-  }
-
-  const gui = new dat.GUI({autoPlace: false});
-
-  document.getElementById('apple').append(gui.domElement);
-  
-  gui.add(state, "controlX", -50, 50, 1);
-  gui.add(state, "controlY", -50, 50, 1);
-  gui.add(state, "zoom", 0, 200, 1);
-  gui.addColor(state, "color")
+  const state = setControls('apple')
 
   function render(time) {
     time *= 0.001;  // convert to seconds
@@ -309,14 +160,16 @@ async function main() {
     const objControl = m4.addVectors(objOffset, [(state.controlX / 1000),
                                                  (state.controlY / 1000),
                                                  (state.zoom / 1000)]);
-    const u_world = m4.translation(...objControl);
+
+    let u_world = m4.translation(...objControl);
+    u_world = m4.yRotate(u_world, degToRad(state.rotation))
 
     for (const {bufferInfo, vao, material} of parts) {
       // set the attributes for this part.
       gl.bindVertexArray(vao);
       // calls gl.uniform
       twgl.setUniforms(meshProgramInfo, {
-        u_world, u_color: state.color.slice(0, 3)
+        u_world,
       }, material);
 
       // calls gl.drawArrays or gl.drawElements
