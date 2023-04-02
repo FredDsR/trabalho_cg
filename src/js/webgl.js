@@ -441,6 +441,7 @@ const setControls = (item_id, defaultColor) => {
     controlY: 0,
     rotationX: 0,
     rotationY: 0,
+    rotationZ: 0,
     zoom: 100,
     color: defaultColor
   }
@@ -453,6 +454,7 @@ const setControls = (item_id, defaultColor) => {
   gui.add(state, "controlY", -50, 50, 1);
   gui.add(state, "rotationX", 0, 360);
   gui.add(state, "rotationY", 0, 360);
+  gui.add(state, "rotationZ", 0, 360);
   gui.add(state, "zoom", 0, 200, 1);
   gui.addColor(state, "color")
 

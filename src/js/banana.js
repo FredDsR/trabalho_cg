@@ -119,6 +119,7 @@ async function main() {
     u_world = m4.zRotate(u_world, degToRad(45));
     u_world = m4.xRotate(u_world, degToRad(state.rotationX))
     u_world = m4.yRotate(u_world, degToRad(state.rotationY))
+    u_world = m4.zRotate(u_world, degToRad(state.rotationZ))
 
     if (oldState.color != state.color) {
       parts = mapObjData(obj, state.color, defaultMaterial, materials, gl, twgl, meshProgramInfo);

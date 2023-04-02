@@ -116,7 +116,9 @@ async function main() {
                                                  (state.zoom / 1000)]);
 
     let u_world = m4.translation(...objControl);
+    u_world = m4.xRotate(u_world, degToRad(45))
     u_world = m4.xRotate(u_world, degToRad(state.rotationX))
+    u_world = m4.zRotate(u_world, degToRad(state.rotationZ))
     u_world = m4.yRotate(u_world, degToRad(state.rotationY))
 
     if (oldState.color != state.color) {
