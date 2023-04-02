@@ -69,7 +69,7 @@ async function main() {
   const zNear = radius / 100;
   const zFar = radius * 100;
   
-  const defaultColor = [255, 0, 0, 1];
+  const defaultColor = [255, 0, 255, 1];
   // GUI
   const state = setControls('cookie', defaultColor);
   let oldState = {...state};
