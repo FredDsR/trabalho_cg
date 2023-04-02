@@ -1,0 +1,20 @@
+Feito:
+
+- controle de zoom
+- controle de translação eixo x e y (e z com o zoom)
+- controle de rotação nos eixos x, y, z
+- controle de cor (com problema, provavelmente por causa do fragment shader)
+- animação de camera fake
+- estrutura de e-commerce sem o carrinho
+- importação de objetos
+
+Foi difícil de fazer:
+
+- preservação dos angulos depois da animação
+
+Faltou:
+
+- mecânica de carrinho do e-commerce
+- animação da câmera com curvas
+- utilização de texturas e controle de texturas
+- animação no fundo
