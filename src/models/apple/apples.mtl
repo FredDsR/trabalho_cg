@@ -1,0 +1,22 @@
+# Blender MTL File: 'FS-0011 Apples.blend'
+# Material Count: 2
+newmtl Apple1_u1_v1
+Ns 0.000000
+Ka 1.000000 1.000000 1.000000
+Kd 1.000000 1.000000 1.000000
+Ks 0.221212 0.221212 0.221212
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+# map_Bump -bm 0.750000 textures/Apple1_u1_v1_normal.png
+newmtl Apple2_u1_v1
+Ns 0.000000
+Ka 1.000000 1.000000 1.000000
+Kd 1.000000 1.000000 1.000000
+Ks 0.172727 0.172727 0.172727
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+# map_Bump -bm 0.750000 textures/Apple2_u1_v1_normal.png
