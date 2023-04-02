@@ -54,12 +54,12 @@ async function main() {
         m4.scaleVector(range, 0.5)),
         -1);
         
-        const cameraTarget = [0, 0, 0];
-        // figure out how far away to move the camera so we can likely
-        // see the object.
-        const radius = m4.length(range) * 0.5;
+  const cameraTarget = [0, 0, 0];
+  // figure out how far away to move the camera so we can likely
+  // see the object.
+  const radius = m4.length(range) * 0.5;
 
-  const cameraPosition = m4.addVectors(cameraTarget, [
+  let cameraPosition = m4.addVectors(cameraTarget, [
     0,
     0,
     radius*3,
@@ -76,9 +76,19 @@ async function main() {
   
   let parts = mapObjData(obj, state.color, defaultMaterial, materials, gl, twgl, meshProgramInfo);
 
+  const animationCoeficient = 30;
+  const cameraAnimationPosition = 200 / animationCoeficient;
+  const cameraAnimationStep = cameraAnimationPosition / 100;
+  const rotationAnimationStep = 360 / 10000;
+  let rotation = 0;
+
+  let then = 0;
+  let deltatime = 0;
   function render(time) {
     time *= 0.001;  // convert to seconds
-    
+    deltatime = time - then;
+    then = time;
+
     twgl.resizeCanvasToDisplaySize(gl.canvas);
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
     gl.enable(gl.DEPTH_TEST);
@@ -88,6 +98,24 @@ async function main() {
     const projection = m4.perspective(fieldOfViewRadians, aspect, zNear, zFar);
   
     const up = [0, 1, 0];
+    
+    let cameraInPosition = false;
+
+    if (state.animateCamera) {
+      if (cameraPosition[1] <= cameraAnimationPosition) {
+        cameraPosition[1] += cameraAnimationStep;
+      } else {
+        cameraPosition[1] = cameraAnimationPosition;
+        cameraInPosition = true;
+      }
+    } else {
+      if (cameraPosition[1] >= 0) {
+        cameraPosition[1] -= cameraAnimationStep;
+      } else {
+        cameraInPosition = true;
+        cameraPosition[1] = 0;
+      }
+    }
 
     // Compute the camera's matrix using look at.
     const camera = m4.lookAt(cameraPosition, cameraTarget, up);    
@@ -109,16 +137,25 @@ async function main() {
 
     // compute the world matrix once since all parts
     // are at the same space.
-    // let u_world = m4.yRotation(time);
-    // u_world = m4.translate(u_world, ...objOffset);
-    const objControl = m4.addVectors(objOffset, [(state.controlX / 10),
-                                                 (state.controlY / 10),
-                                                 (state.zoom / 15)]);
 
-    let u_world = m4.translation(...objControl);
-    u_world = m4.zRotate(u_world, degToRad(45));
+
+    let u_world = null;
+
+    const objControl = m4.addVectors(objOffset, [(state.controlX / animationCoeficient),
+                                                (state.controlY / animationCoeficient),
+                                                (state.zoom / animationCoeficient * 2)]);
+
+    if (state.animateCamera && cameraInPosition) {
+      rotation += rotationAnimationStep;
+    
+    }
+    u_world = m4.yRotation(rotation);
+    u_world = m4.translate(u_world, ...objControl);
+    
+    const new_rotation =  rotation + state.rotationY;
+
     u_world = m4.xRotate(u_world, degToRad(state.rotationX));
-    u_world = m4.yRotate(u_world, degToRad(state.rotationY));
+    u_world = m4.yRotate(u_world, degToRad(new_rotation));
     u_world = m4.zRotate(u_world, degToRad(state.rotationZ));
 
     if (oldState.color != state.color) {

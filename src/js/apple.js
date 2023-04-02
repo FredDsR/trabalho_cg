@@ -6,7 +6,7 @@
 async function main() {
   const {gl, twgl, meshProgramInfo} = initializeWorld('#apple-canvas')
 
-  const {obj, materials} = await loadObjAndMat('../../src/models/apples/apples.obj');
+  const {obj, materials} = await loadObjAndMat('../../src/models/apple/apple.obj');
 
   const textures = {
     defaultWhite: twgl.createTexture(gl, {src: [255, 255, 255, 255]}),
@@ -76,13 +76,12 @@ async function main() {
   
   let parts = mapObjData(obj, state.color, defaultMaterial, materials, gl, twgl, meshProgramInfo);
 
-  
   const animationCoeficient = 1000;
   const cameraAnimationPosition = 200 / animationCoeficient;
-  const cameraAnimationStep = 1 / animationCoeficient;
+  const cameraAnimationStep = cameraAnimationPosition / 100;
+  const rotationAnimationStep = 360 / 10000;
   let rotation = 0;
-  const rotationAnimationStep = 10 / animationCoeficient;
-  
+
   let then = 0;
   let deltatime = 0;
   function render(time) {
@@ -118,7 +117,6 @@ async function main() {
       }
     }
 
-
     // Compute the camera's matrix using look at.
     const camera = m4.lookAt(cameraPosition, cameraTarget, up);    
 
@@ -145,18 +143,15 @@ async function main() {
 
     const objControl = m4.addVectors(objOffset, [(state.controlX / animationCoeficient),
                                                 (state.controlY / animationCoeficient),
-                                                0]);
+                                                (state.zoom / animationCoeficient * 2)]);
 
     if (state.animateCamera && cameraInPosition) {
       rotation += rotationAnimationStep;
-      u_world = m4.yRotation(rotation);
-      u_world = m4.translate(u_world, ...objControl);
-    } else {
-      u_world = m4.translation(...objControl);
-      u_world = m4.yRotate(u_world, degToRad(rotation));
-      
+    
     }
-
+    u_world = m4.yRotation(rotation);
+    u_world = m4.translate(u_world, ...objControl);
+    
     const new_rotation =  rotation + state.rotationY;
 
     u_world = m4.xRotate(u_world, degToRad(state.rotationX));
