@@ -72,7 +72,7 @@ async function main() {
   const defaultColor = [255, 0, 0, 1];
   // GUI
   const state = setControls('apple', defaultColor);
-  // let oldState = {...state};
+  let oldState = {...state};
   
   let parts = mapObjData(obj, state.color, defaultMaterial, materials, gl, twgl, meshProgramInfo);
 
@@ -119,13 +119,11 @@ async function main() {
     u_world = m4.xRotate(u_world, degToRad(state.rotationX))
     u_world = m4.yRotate(u_world, degToRad(state.rotationY))
 
-    // if (oldState.color != state.color) {
-    //   parts = mapObjData(obj, state.color, defaultMaterial, materials, gl, twgl, meshProgramInfo);
-    // }
+    if (oldState.color != state.color) {
+      parts = mapObjData(obj, state.color, defaultMaterial, materials, gl, twgl, meshProgramInfo);
+    }
 
     for (const {bufferInfo, vao, material} of parts) {
-      // material.diffuse = state.color;
-      material.color = state.color;
       // set the attributes for this part.
       gl.bindVertexArray(vao);
       // calls gl.uniform
@@ -137,7 +135,7 @@ async function main() {
       twgl.drawBufferInfo(gl, bufferInfo);
     }
 
-    // oldState = {...state};
+    oldState = {...state};
     requestAnimationFrame(render);
   }
   requestAnimationFrame(render);
