@@ -9,7 +9,7 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.450000
 d 1.000000
 illum 2
-map_Bump -bm 0.750000 textures/Apple1_u1_v1_normal.png
+# map_Bump -bm 0.750000 textures/Apple1_u1_v1_normal.png
 newmtl Apple2_u1_v1
 Ns 0.000000
 Ka 1.000000 1.000000 1.000000
@@ -19,4 +19,4 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.450000
 d 1.000000
 illum 2
-map_Bump -bm 0.750000 textures/Apple2_u1_v1_normal.png
+# map_Bump -bm 0.750000 textures/Apple2_u1_v1_normal.png

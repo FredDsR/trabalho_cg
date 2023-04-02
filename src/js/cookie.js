@@ -255,7 +255,7 @@ async function main() {
   // for the size of this object.
   const zNear = radius / 100;
   const zFar = 2000;
-  console.log(radius)
+  
   function degToRad(deg) {
     return deg * Math.PI / 180;
   }

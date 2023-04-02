@@ -414,6 +414,8 @@ void main () {
 `;
 
 const initializeWorld = (canva) => {
+  // Get A WebGL context
+  /** @type {HTMLCanvasElement} */
   const canvas = document.querySelector(canva);
   const gl = canvas.getContext("webgl2");
   if (!gl) {
@@ -433,13 +435,14 @@ const initializeWorld = (canva) => {
   };
 };
 
-const setControls = (item_id) => {
+const setControls = (item_id, defaultColor) => {
   const state = {
     controlX: 0,
     controlY: 0,
-    rotation: 0,
+    rotationX: 0,
+    rotationY: 0,
     zoom: 100,
-    color: [255, 0, 0, 1]
+    color: defaultColor
   }
 
   const gui = new dat.GUI({autoPlace: false});
@@ -448,7 +451,8 @@ const setControls = (item_id) => {
   
   gui.add(state, "controlX", -50, 50, 1);
   gui.add(state, "controlY", -50, 50, 1);
-  gui.add(state, "rotation", 0, 360);
+  gui.add(state, "rotationX", 0, 360);
+  gui.add(state, "rotationY", 0, 360);
   gui.add(state, "zoom", 0, 200, 1);
   gui.addColor(state, "color")
 
@@ -466,6 +470,58 @@ async function loadObjAndMat(objHref) {
     return await response.text();
   }));
   const materials = parseMTL(matTexts.join('\n'));
-
   return {obj, materials}
+}
+
+function mapObjData(obj, color, defaultMaterial, materials, gl, twgl, meshProgramInfo) {
+  const parts = obj.geometries.map(({material, data}) => {
+    // Because data is just named arrays like this
+    //
+    // {
+    //   position: [...],
+    //   texcoord: [...],
+    //   normal: [...],
+    // }
+    //
+    // and because those names match the attributes in our vertex
+    // shader we can pass it directly into `createBufferInfoFromArrays`
+    // from the article "less code more fun".
+
+    data.color = { value: color };
+
+    // generate tangents if we have the data to do so.
+    if (data.texcoord && data.normal) {
+      data.tangent = generateTangents(data.position, data.texcoord);
+    } else {
+      // There are no tangents
+      data.tangent = { value: [1, 0, 0] };
+    }
+    // data.tangent = { value: [1, 0, 0] };
+
+    if (!data.texcoord) {
+      data.texcoord = { value: [0, 0] };
+    }
+
+    if (!data.normal) {
+      // we probably want to generate normals if there are none
+      data.normal = { value: [0, 0, 1] };
+    }
+    
+    // console.log(data)
+    // create a buffer for each array by calling
+    // gl.createBuffer, gl.bindBuffer, gl.bufferData
+    const bufferInfo = twgl.createBufferInfoFromArrays(gl, data);
+    // console.log(bufferInfo);
+    const vao = twgl.createVAOFromBufferInfo(gl, meshProgramInfo, bufferInfo);
+    // console.log(vao)
+    return {
+      material: {
+        ...defaultMaterial,
+        ...materials[material],
+      },
+      bufferInfo,
+      vao,
+    };
+  });
+  return parts;
 }
