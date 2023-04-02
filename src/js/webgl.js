@@ -437,6 +437,7 @@ const initializeWorld = (canva) => {
 
 const setControls = (item_id, defaultColor) => {
   const state = {
+    animateCamera: false,
     controlX: 0,
     controlY: 0,
     rotationX: 0,
@@ -450,6 +451,7 @@ const setControls = (item_id, defaultColor) => {
 
   document.getElementById(item_id).append(gui.domElement);
   
+  gui.add(state, "animateCamera");
   gui.add(state, "controlX", -50, 50, 1);
   gui.add(state, "controlY", -50, 50, 1);
   gui.add(state, "rotationX", 0, 360);
