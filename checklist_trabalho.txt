@@ -18,3 +18,5 @@ Faltou:
 - animação da câmera com curvas
 - utilização de texturas e controle de texturas
 - animação no fundo
+
+GitHub: https://github.com/FredDsR/trabalho_cg/tree/import_obj (branch import_obj)
